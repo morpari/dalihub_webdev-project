@@ -1,0 +1,84 @@
+### Create a Post (Requires Authentication)
+POST http://localhost:3000/posts
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+  "title": "Sample Post",
+  "content": "This is a test post"
+}
+
+### Get All Posts
+GET http://localhost:3000/posts
+
+### Get Post by ID
+GET http://localhost:3000/posts/678d7ee9a1addf9947cacfe9
+
+### Get Posts by Sender ID
+GET http://localhost:3000/posts/sender/64b3ef869eebbe1f6d4b1234
+
+### Update a Post (Requires Authentication)
+PUT http://localhost:3000/posts/678d7ee9a1addf9947cacfe9
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+  "title": "Updated Post",
+  "content": "This post has been updated"
+}
+
+### Add a Comment (Requires Authentication)
+POST http://localhost:3000/comments
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+  "postId": "678d7ee9a1addf9947cacfe9",
+  "content": "Test comment 4"
+}
+
+### Update a Comment (Requires Authentication)
+PUT http://localhost:3000/comments/678e411be32f8caa8df7e3a7
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+  "content": "Test comment was updated"
+}
+
+### Get Comment by Comment ID
+GET http://localhost:3000/comments/678e411be32f8caa8df7e3a7 
+
+### Get Comments for a Specific Post by Post ID
+GET http://localhost:3000/comments/post/678d7ee9a1addf9947cacfe9 
+
+### Delete a Comment by Comment ID (Requires Authentication)
+DELETE http://localhost:3000/comments/678e411be32f8caa8df7e3a7
+Authorization: Bearer your_access_token_here
+
+### Register a New User
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "mypassword"
+}
+
+### User Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "mypassword"
+}
+
+### Refresh Token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "token": "your_refresh_token_here"
+}
