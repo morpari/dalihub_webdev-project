@@ -1,4 +1,35 @@
 const Post = require('../models/post');
+const Post = require('../models/post');
+const OpenAI = require("openai");
+require("dotenv").config();
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+exports.generateImage = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
+    }
+
+    const response = await openai.images.generate({
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    if (!response.data || !response.data.data || !response.data.data[0].url) {
+      return res.status(500).json({ error: "Failed to generate image" });
+    }
+
+    res.status(200).json({ imageUrl: response.data.data[0].url });
+  } catch (error) {
+    console.error("Error generating image:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 const getAllPosts = async (req, res) => {
   try {
