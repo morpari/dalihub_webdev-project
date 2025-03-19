@@ -1,10 +1,12 @@
 const express = require('express');
+const rateLimit = require("express-rate-limit");
 const {
   getAllPosts,
   getPostById,
   getPostsBySender,
   addPost,
   updatePost,
+  generateImage,
 } = require('../controllers/posts');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -110,6 +112,52 @@ router.get('/:id', getPostById);
  *       404:
  *         description: Post not found
  */
-router.put('/:id', authMiddleware, updatePost);
+
+/**
+ * @swagger
+ * /posts/generate-image:
+ *   post:
+ *     summary: Generate an AI image using DALL·E
+ *     description: Generates an image based on a text prompt using OpenAI's DALL·E API.
+ *     tags: [Posts]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               prompt:
+ *                 type: string
+ *                 example: "A futuristic city at sunset"
+ *     responses:
+ *       200:
+ *         description: Image generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 imageUrl:
+ *                   type: string
+ *                   example: "https://openai.com/generated-image-url.jpg"
+ *       400:
+ *         description: Bad request (missing prompt)
+ *       429:
+ *         description: Rate limit exceeded
+ *       500:
+ *         description: Internal server error
+ */
+
+const imageGenLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: "Rate limit exceeded. Try again later." },
+});
+
+router.post("/generate-image", authMiddleware, imageGenLimiter, generateImage);
+
 
 module.exports = router;
