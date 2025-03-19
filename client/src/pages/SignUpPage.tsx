@@ -1,9 +1,54 @@
-import React from "react";
+import React, { useState } from "react";
+import axiosInstance from "../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc"; // Google Logo
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+
+  // Handle input change
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle form signup
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.post("/auth/register", {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      localStorage.setItem("token", response.data.accessToken);
+      navigate("/posts"); // Redirect to feed after signup
+    } catch (error) {
+      setError("Signup failed. Please try again.");
+    }
+  };
+
+  // Google Signup Handler
+  const handleGoogleSignup = () => {
+    window.location.href = `${process.env.REACT_APP_BACK_URL}/auth/google`;
+  };
+
   return (
     <motion.div
       className="h-screen flex flex-col items-center justify-center text-white relative overflow-hidden"
@@ -26,52 +71,78 @@ const SignUpPage = () => {
       >
         <h2 className="text-3xl font-bold text-gray-300 text-center">Sign Up</h2>
 
-        {/* Username Input */}
-        <div className="mt-6">
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
-          />
-        </div>
+        {error && <p className="text-red-400 text-sm text-center mt-2">{error}</p>}
 
-        {/* Email Input */}
-        <div className="mt-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          {/* Username Input */}
+          <div className="mt-6">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
+              required
+            />
+          </div>
 
-        {/* Password Input */}
-        <div className="mt-4">
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
-          />
-        </div>
+          {/* Email Input */}
+          <div className="mt-4">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
+              required
+            />
+          </div>
 
-        {/* Confirm Password Input */}
-        <div className="mt-4">
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
-          />
-        </div>
+          {/* Password Input */}
+          <div className="mt-4">
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
+              required
+            />
+          </div>
 
-        {/* Sign Up Button */}
-        <div className="mt-6">
-          <button className="w-full px-4 py-2 bg-white bg-opacity-20 text-gray-200 font-semibold rounded-full shadow-md transition-all hover:scale-105">
-            Sign Up
-          </button>
-        </div>
+          {/* Confirm Password Input */}
+          <div className="mt-4">
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-transparent border border-white border-opacity-30 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:border-purple-400"
+              required
+            />
+          </div>
+
+          {/* Sign Up Button */}
+          <div className="mt-6">
+            <button
+              type="submit"
+              className="w-full px-4 py-2 bg-purple-600 bg-opacity-70 text-gray-200 font-semibold rounded-full shadow-md transition-all hover:scale-105"
+            >
+              Sign Up
+            </button>
+          </div>
+        </form>
 
         {/* Google Sign Up Button */}
         <div className="mt-4">
-          <button className="w-full flex items-center justify-center px-4 py-2 bg-white bg-opacity-20 text-gray-200 font-semibold rounded-full shadow-md transition-all hover:scale-105">
+          <button
+            onClick={handleGoogleSignup}
+            className="w-full flex items-center justify-center px-4 py-2 bg-white bg-opacity-20 text-gray-200 font-semibold rounded-full shadow-md transition-all hover:scale-105"
+          >
             <FcGoogle className="mr-2 text-xl" /> Sign Up with Google
           </button>
         </div>

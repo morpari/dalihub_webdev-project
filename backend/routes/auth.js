@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 require('../config/passport'); // Load Google OAuth strategy
 const { register, login, refreshToken, logout } = require('../controllers/auth');
+const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
 
 const router = express.Router();
 
@@ -34,14 +35,24 @@ router.get('/google',
    *     description: Handles the Google OAuth callback and issues JWT tokens.
    *     tags: [Authentication]
    */
+
   router.get(
-    '/google/callback',
-    passport.authenticate('google', { session: false }),
-    (req, res) => {
-      // Send JWT tokens to the frontend
-      res.json({ accessToken: req.user.accessToken, refreshToken: req.user.refreshToken });
+    "/google/callback",
+    passport.authenticate("google", { session: false }),
+    async (req, res) => {
+      if (!req.user) {
+        return res.redirect(`${process.env.FRONT_URL}/login?error=unauthorized`);
+      }
+  
+      // User's refresh token is already stored in the database in passport.js
+      const accessToken = req.user.accessToken;  // Use existing token
+      const refreshToken = req.user.refreshToken; // Use the one from passport.js
+  
+      console.log("Redirecting user with tokens:", accessToken, refreshToken);
+      res.redirect(`${process.env.FRONT_URL}/auth/google/callback?token=${accessToken}`);
     }
   );
+  
 
 /**
  * @swagger
