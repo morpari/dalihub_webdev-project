@@ -7,14 +7,16 @@ const GoogleCallback = () => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
+    const accessToken = urlParams.get("accessToken");
+    const refreshToken = urlParams.get("refreshToken");
 
-    if (token) {
+    if (accessToken && refreshToken) {
       // Save token to local storage
-      localStorage.setItem("accessToken", token);
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
 
-      // Redirect user to home or dashboard
-      navigate("/posts"); // Change this to your preferred route
+
+      navigate("/posts"); 
     } else {
       navigate("/login?error=unauthorized");
     }

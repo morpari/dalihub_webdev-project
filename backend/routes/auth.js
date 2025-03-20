@@ -3,6 +3,7 @@ const passport = require('passport');
 require('../config/passport'); // Load Google OAuth strategy
 const { register, login, refreshToken, logout } = require('../controllers/auth');
 const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -47,9 +48,8 @@ router.get('/google',
       // User's refresh token is already stored in the database in passport.js
       const accessToken = req.user.accessToken;  // Use existing token
       const refreshToken = req.user.refreshToken; // Use the one from passport.js
-  
-      console.log("Redirecting user with tokens:", accessToken, refreshToken);
-      res.redirect(`${process.env.FRONT_URL}/auth/google/callback?token=${accessToken}`);
+      console.log("Redirecting user with access token:", accessToken,"and refresh token", refreshToken);
+      res.redirect(`${process.env.FRONT_URL}/auth/google/callback?token=${accessToken}&refreshToken=${refreshToken}`);
     }
   );
   
@@ -177,6 +177,6 @@ router.post('/refresh', refreshToken);
  *       403:
  *         description: Invalid refresh token.
  */
-router.post('/logout', logout);
+router.post('/logout',authMiddleware, logout);
 
 module.exports = router;

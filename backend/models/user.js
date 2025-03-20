@@ -16,20 +16,18 @@ const userSchema = new mongoose.Schema({
     required: function () {
       return !this.googleId; // If there's no Google ID, require a password
     },
-  }, // ✅ Fixed closing bracket here
+  }, 
   profileImage: { 
     type: String, 
     default: '' 
   },
   googleId: { 
     type: String, 
-    default: null,
-    unique: true, 
+    default: null
   }, 
   refreshToken: { 
     type: String,
     default: null, 
-    unique: true, 
   }, 
 }, 
 { timestamps: true });

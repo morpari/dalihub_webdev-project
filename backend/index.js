@@ -7,13 +7,16 @@ const commentsRouter = require('./routes/comments')
 const authRouter = require('./routes/auth');
 const cors = require('cors');
 const setupSwagger = require('./config/swagger');
-
+const cors = require("cors");
 const app = express()
 
+
+
+
 app.use(cors({
-  origin: 'http://localhost:3001',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+    origin: process.env.FRONT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
 }));
 
 // parse application/x-www-form-urlencoded

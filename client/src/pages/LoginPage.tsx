@@ -14,13 +14,13 @@ const LoginPage = () => {
   });
   const [error, setError] = useState("");
 
-  // //Check if Google auth failed
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   if (params.get("error") === "unauthorized") {
-  //     setError("Google Authentication failed. Please try again.");
-  //   }
-  // }, [location.search]);
+  //Check if Google auth failed
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("error") === "unauthorized") {
+      setError("Google Authentication failed. Please try again.");
+    }
+  }, [location.search]);
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +34,10 @@ const LoginPage = () => {
 
     try {
       const response = await axiosInstance.post("/auth/login", formData);
-      localStorage.setItem("token", response.data.accessToken);
+      const { accessToken, refreshToken } = response.data;
+
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       navigate("/posts"); // Redirect to feed after login
     } catch (error) {
       setError("Invalid email or password.");

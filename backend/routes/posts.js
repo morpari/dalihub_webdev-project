@@ -59,7 +59,7 @@ router.post('/', authMiddleware, addPost);
  *       200:
  *         description: List of posts
  */
-router.get('/', getAllPosts);
+router.get('/',authMiddleware, getAllPosts);
 
 /**
  * @swagger
@@ -77,7 +77,7 @@ router.get('/', getAllPosts);
  *       200:
  *         description: Post data
  */
-router.get('/:id', getPostById);
+router.get('/:id',authMiddleware, getPostById);
 
 /**
  * @swagger

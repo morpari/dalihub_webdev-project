@@ -37,8 +37,10 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+
 # Ignore Firebase service account
 firebase-service-account.json
 
 # Ignore dependency lockfile
 package-lock.json
+
