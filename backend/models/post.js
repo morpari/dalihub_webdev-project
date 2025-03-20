@@ -15,6 +15,10 @@ const PostSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    imageUrl: {
+      type: String, // URL of the image stored in Firebase
+      required: false,
+    },
   },
   { timestamps: true }
 );
