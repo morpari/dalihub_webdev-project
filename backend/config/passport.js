@@ -21,6 +21,7 @@ passport.use(
             email: profile.emails[0].value,
             profileImage: profile.photos[0].value,
             googleId: profile.id,
+            password: undefined,
           });
           await user.save();
         }
@@ -41,7 +42,7 @@ passport.use(
         user.refreshToken = refreshTokenJwt;
         await user.save();
 
-        return done(null, { accessToken: accessTokenJwt, refreshToken: refreshTokenJwt });
+        return done(null, { accessToken: accessTokenJwt, refreshToken: refreshTokenJwt, userId: user._id });
       } catch (error) {
         return done(error, null);
       }

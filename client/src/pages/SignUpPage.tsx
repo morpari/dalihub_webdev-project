@@ -36,11 +36,12 @@ const SignUpPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      const { accessToken, refreshToken } = response.data;
+      const { accessToken, refreshToken, userId } = response.data;
 
       // Store both tokens
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("refreshToken", userId);
 
       navigate("/posts"); // Redirect to feed after signup
     } catch (error: any) {

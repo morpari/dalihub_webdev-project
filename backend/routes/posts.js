@@ -53,12 +53,45 @@ router.post('/', authMiddleware, addPost);
  * @swagger
  * /posts:
  *   get:
- *     summary: Get all posts
+ *     summary: Get paginated list of all posts (Requires Authentication)
  *     tags: [Posts]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: The number of posts per page.
  *     responses:
  *       200:
- *         description: List of posts
+ *         description: A paginated list of posts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 posts:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ *                 currentPage:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 5
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
  */
+
 router.get('/',authMiddleware, getAllPosts);
 
 /**
@@ -78,6 +111,60 @@ router.get('/',authMiddleware, getAllPosts);
  *         description: Post data
  */
 router.get('/:id',authMiddleware, getPostById);
+
+/**
+ * @swagger
+ * /posts/user/{senderId}:
+ *   get:
+ *     summary: Get paginated posts of a specific user (Requires Authentication)
+ *     tags: [Posts]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: senderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user whose posts are being retrieved.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The page number for pagination.
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: The number of posts per page.
+ *     responses:
+ *       200:
+ *         description: A paginated list of posts by the specified user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 posts:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ *                 currentPage:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 5
+ *       400:
+ *         description: Sender ID is required.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ */
+
+router.get('/user/:senderId', authMiddleware, getPostsBySender);
+
 
 /**
  * @swagger

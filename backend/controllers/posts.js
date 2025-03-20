@@ -44,12 +44,25 @@ const generateImage = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find();
-    res.json(posts);
+    const { page = 1, limit = 10 } = req.query; // Get page & limit from query params
+
+    const posts = await Post.find()
+      .sort({ createdAt: -1 }) // Sort latest posts first
+      .skip((page - 1) * limit) // Skip previous pages
+      .limit(parseInt(limit)); // Limit per page
+
+    const totalPosts = await Post.countDocuments(); // Total count
+
+    res.json({
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving posts' });
+    res.status(500).json({ error: "Error retrieving posts" });
   }
 };
+
 
 const getPostById = async (req, res) => {
   try {
@@ -64,14 +77,27 @@ const getPostById = async (req, res) => {
 const getPostsBySender = async (req, res) => {
   try {
     const { senderId } = req.params;
-    if (!senderId) return res.status(400).json({ error: 'Sender ID is required' });
+    const { page = 1, limit = 10 } = req.query; // Pagination
 
-    const posts = await Post.find({ senderId });
-    res.json(posts);
+    if (!senderId) return res.status(400).json({ error: "Sender ID is required" });
+
+    const posts = await Post.find({ senderId })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const totalPosts = await Post.countDocuments({ senderId });
+
+    res.json({
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving posts by sender' });
+    res.status(500).json({ error: "Error retrieving posts by sender" });
   }
 };
+
 
 const addPost = async (req, res) => {
   try {

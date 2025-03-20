@@ -7,6 +7,8 @@ const commentsRouter = require('./routes/comments')
 const authRouter = require('./routes/auth');
 const cors = require('cors');
 const setupSwagger = require('./config/swagger');
+const userRoutes = require("./routes/users");
+
 const app = express()
 
 
@@ -33,7 +35,8 @@ const port = process.env.PORT
 
 app.use('/posts', postsRouter)
 app.use('/comments', commentsRouter)
-app.use('/auth', authRouter);
+app.use('/auth', authRouter)
+app.use("/users", userRoutes);
 
 setupSwagger(app);
 
