@@ -8,7 +8,8 @@ const GoogleCallback = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get("accessToken");
-    const refreshToken = urlParams.get("refreshToken");
+    const refreshToken = urlParams.get("refreshToken"); 
+    const userId = urlParams.get("userId");
 
     if (accessToken && refreshToken) {
       // Save token to local storage

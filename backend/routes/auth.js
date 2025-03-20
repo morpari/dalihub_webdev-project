@@ -47,9 +47,10 @@ router.get('/google',
   
       // User's refresh token is already stored in the database in passport.js
       const accessToken = req.user.accessToken;  // Use existing token
-      const refreshToken = req.user.refreshToken; // Use the one from passport.js
+      const refreshToken = req.user.refreshToken; // Use the one from passport.js userId
+      const userId = req.user.userId;
       console.log("Redirecting user with access token:", accessToken,"and refresh token", refreshToken);
-      res.redirect(`${process.env.FRONT_URL}/auth/google/callback?token=${accessToken}&refreshToken=${refreshToken}`);
+      res.redirect(`${process.env.FRONT_URL}/auth/google/callback?token=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&userId=${encodeURIComponent(userId)}`);
     }
   );
   

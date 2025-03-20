@@ -34,10 +34,11 @@ const LoginPage = () => {
 
     try {
       const response = await axiosInstance.post("/auth/login", formData);
-      const { accessToken, refreshToken } = response.data;
+      const { accessToken, refreshToken, userId } = response.data;
 
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("userId", userId);
       navigate("/posts"); // Redirect to feed after login
     } catch (error) {
       setError("Invalid email or password.");

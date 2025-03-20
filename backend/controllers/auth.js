@@ -39,7 +39,7 @@ const register = async (req, res) => {
         user.refreshToken = refreshToken; // Store refresh token in DB
         await user.save();
 
-        res.status(201).json({ message: 'User registered successfully', accessToken, refreshToken });
+        res.status(201).json({ message: 'User registered successfully', accessToken, refreshToken, userId: user._id });
 
     } catch (error) {
         console.error('Registration Error:', error);
@@ -69,7 +69,7 @@ const login = async (req, res) => {
         user.refreshToken = refreshToken; //store new refresh token
         await user.save();
 
-        res.status(200).json({ accessToken, refreshToken });
+        res.status(200).json({ accessToken, refreshToken, userId: user._id });
 
     } catch (error) {
         console.error('Login Error:', error);

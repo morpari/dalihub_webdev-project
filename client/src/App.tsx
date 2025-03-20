@@ -4,6 +4,8 @@ import WelcomePage from "./pages/WelcomePage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import FeedPage from "./pages/FeedPage";
+import ProfilePage from "./pages/ProfilePage";
+
 
 const App = () => {
   return (
@@ -14,6 +16,7 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/posts" element={<FeedPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/auth/google/callback" element={<GoogleAuthHandler />} /> {/* new */}
       </Routes>
     </>
@@ -27,12 +30,15 @@ const GoogleAuthHandler = () => {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get("token");  
     const refreshToken = params.get("refreshToken");
+    const userId = params.get("userId");
 
     console.log("GoogleAuthHandler triggered - accessToken:", accessToken);
     
-    if (accessToken && refreshToken) {
+    if (accessToken && refreshToken && userId) {
       localStorage.setItem("token", accessToken); 
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("userId", userId);
+
       navigate("/posts"); // Redirect user to Feed Page
     } else {
       console.error("Missing token(s), redirecting to login.");
