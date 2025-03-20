@@ -36,11 +36,19 @@ const SignUpPage = () => {
         email: formData.email,
         password: formData.password,
       });
+      const { accessToken, refreshToken } = response.data;
 
-      localStorage.setItem("token", response.data.accessToken);
+      // Store both tokens
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+
       navigate("/posts"); // Redirect to feed after signup
-    } catch (error) {
-      setError("Signup failed. Please try again.");
+    } catch (error: any) {
+      if (error.response) {
+        setError(error.response.data.error);
+      } else {
+        setError("Signup failed. Please try again.");
+      }
     }
   };
 

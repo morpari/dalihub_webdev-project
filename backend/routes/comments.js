@@ -67,7 +67,7 @@ router.post('/', authMiddleware, addComment);
  *       404:
  *         description: Comment not found
  */
-router.get('/:id', getCommentById);
+router.get('/:id', authMiddleware, getCommentById);
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ router.get('/:id', getCommentById);
  *       400:
  *         description: Missing post ID
  */
-router.get('/post/:postId', getAllCommentsForPost);
+router.get('/post/:postId',authMiddleware, getAllCommentsForPost);
 
 /**
  * @swagger
@@ -120,7 +120,7 @@ router.get('/post/:postId', getAllCommentsForPost);
  *       404:
  *         description: Comment not found
  */
-router.put('/:id', authMiddleware, updateComment);
+router.put('/:id', authMiddleware, authMiddleware, updateComment);
 
 /**
  * @swagger
@@ -144,6 +144,6 @@ router.put('/:id', authMiddleware, updateComment);
  *       404:
  *         description: Comment not found
  */
-router.delete('/:id', authMiddleware, deleteComment);
+router.delete('/:id', authMiddleware, authMiddleware, deleteComment);
 
 module.exports = router;

@@ -9,6 +9,16 @@ const setupSwagger = require('./config/swagger');
 
 const app = express()
 
+
+const cors = require("cors");
+
+
+app.use(cors({
+    origin: process.env.FRONT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
+
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json

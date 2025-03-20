@@ -1,6 +1,5 @@
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const CLIENT_URL = process.env.CLIENT_URL;
 
 const swaggerDefinition = {
   openapi: '3.0.0',
@@ -11,7 +10,7 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: CLIENT_URL,
+      url: process.env.FRONT_URL,
       description: 'Development server',
     },
   ],
