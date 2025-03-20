@@ -7,7 +7,6 @@ const commentsRouter = require('./routes/comments')
 const authRouter = require('./routes/auth');
 const cors = require('cors');
 const setupSwagger = require('./config/swagger');
-const cors = require("cors");
 const app = express()
 
 
