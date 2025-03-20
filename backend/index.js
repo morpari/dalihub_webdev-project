@@ -5,9 +5,16 @@ require('dotenv').config()
 const postsRouter = require('./routes/posts')
 const commentsRouter = require('./routes/comments')
 const authRouter = require('./routes/auth');
+const cors = require('cors');
 const setupSwagger = require('./config/swagger');
 
 const app = express()
+
+app.use(cors({
+  origin: 'http://localhost:3001',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
