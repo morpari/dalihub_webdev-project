@@ -1,5 +1,7 @@
 const Post = require('../models/post');
 const OpenAI = require("openai");
+const axios = require("axios");
+const { bucket } = require("../config/firebase");
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -9,12 +11,7 @@ const openai = new OpenAI({
 const generateImage = async (req, res) => {
   try {
     const { prompt } = req.body;
-
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
-    }
-
-    console.log("Generating image for prompt:", prompt);
+    if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
     const response = await openai.images.generate({
       prompt: prompt,
@@ -22,20 +19,26 @@ const generateImage = async (req, res) => {
       size: "1024x1024",
     });
 
-    console.log("OpenAI Response:", response);
-
-    const imageUrl = response.data?.[0]?.url || null;
-
-    if (!imageUrl) {
-      console.error("Invalid OpenAI response:", response);
-      return res.status(500).json({ error: "OpenAI response is invalid" });
+    if (!response.data || !response.data[0].url) {
+      return res.status(500).json({ error: "Failed to generate image" });
     }
 
-    res.status(200).json({ imageUrl });
+    const openAiImageUrl = response.data[0].url;
+
+    const imageResponse = await axios.get(openAiImageUrl, { responseType: "arraybuffer" });
+    const imageBuffer = Buffer.from(imageResponse.data, "binary");
+
+    const fileName = `generated-images/${Date.now()}.png`;
+    const file = bucket.file(fileName);
+    await file.save(imageBuffer, { contentType: "image/png" });
+
+    const firebaseImageUrl = `https://storage.googleapis.com/${process.env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
+
+    res.status(200).json({ imageUrl: firebaseImageUrl });
 
   } catch (error) {
-    console.error("Error generating image:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to generate image", details: error.response?.data || error.message });
+    console.error("Error generating image:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
