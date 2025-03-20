@@ -2,6 +2,7 @@ const Post = require('../models/post');
 const OpenAI = require("openai");
 const axios = require("axios");
 const { bucket } = require("../config/firebase");
+const { getStorage, ref, getDownloadURL } = require('firebase/storage');
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -10,35 +11,90 @@ const openai = new OpenAI({
 
 const generateImage = async (req, res) => {
   try {
+    console.log("Image generation request received");
     const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+    
+    // Validate prompt
+    if (!prompt) {
+      console.log("Error: No prompt provided");
+      return res.status(400).json({ error: "Prompt is required" });
+    }
 
+    // Validate API key
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OpenAI API key is missing");
+      return res.status(500).json({ error: "Server configuration error (API key missing)" });
+    }
+
+    console.log("Calling OpenAI API with prompt:", prompt);
+    
+    // Call OpenAI API
     const response = await openai.images.generate({
       prompt: prompt,
       n: 1,
       size: "1024x1024",
     });
 
-    if (!response.data || !response.data[0].url) {
-      return res.status(500).json({ error: "Failed to generate image" });
+    // Validate OpenAI response
+    if (!response.data || response.data.length === 0 || !response.data[0].url) {
+      console.error("Invalid response from OpenAI:", response);
+      return res.status(500).json({ error: "Failed to generate image - invalid API response" });
     }
 
     const openAiImageUrl = response.data[0].url;
+    console.log("Generated image URL from OpenAI:", openAiImageUrl);
 
-    const imageResponse = await axios.get(openAiImageUrl, { responseType: "arraybuffer" });
-    const imageBuffer = Buffer.from(imageResponse.data, "binary");
+    try {
+      // Download image from OpenAI
+      console.log("Downloading image from OpenAI...");
+      const imageResponse = await axios.get(openAiImageUrl, { responseType: "arraybuffer" });
+      const imageBuffer = Buffer.from(imageResponse.data, "binary");
 
-    const fileName = `generated-images/${Date.now()}.png`;
-    const file = bucket.file(fileName);
-    await file.save(imageBuffer, { contentType: "image/png" });
+      // Validate Firebase bucket
+      if (!bucket) {
+        console.error("Firebase bucket is not configured");
+        return res.status(500).json({ error: "Server configuration error (storage not configured)" });
+      }
 
-    const firebaseImageUrl = `https://storage.googleapis.com/${process.env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
+      // Upload to Firebase
+      console.log("Uploading to Firebase Storage...");
+      const fileName = `generated-images/${Date.now()}-${req.user.userId}.png`;
+      const file = bucket.file(fileName);
+      
+      await file.save(imageBuffer, { 
+        contentType: "image/png",
+        metadata: {
+          firebaseStorageDownloadTokens: Date.now().toString(),
+        }
+      });
 
-    res.status(200).json({ imageUrl: firebaseImageUrl });
+      // Get public URL
+      const firebaseImageUrl = await getDownloadURL(file);
+      console.log("Image successfully uploaded to Firebase:", firebaseImageUrl);
 
+      res.status(200).json({ imageUrl: firebaseImageUrl });
+    } catch (downloadError) {
+      console.error("Error processing or storing the image:", downloadError);
+      return res.status(500).json({ error: "Failed to process generated image" });
+    }
   } catch (error) {
-    console.error("Error generating image:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error in generateImage:", error);
+    
+    // Provide more specific error messages based on error type
+    if (error.response) {
+      console.error("API response error:", error.response.status, error.response.data);
+      // Handle OpenAI API specific errors
+      if (error.response.status === 401) {
+        return res.status(500).json({ error: "API authentication failed - check API key" });
+      } else if (error.response.status === 429) {
+        return res.status(500).json({ error: "API rate limit exceeded" });
+      }
+    }
+    
+    res.status(500).json({ 
+      error: "Failed to generate image", 
+      message: error.message 
+    });
   }
 };
 
@@ -75,22 +131,23 @@ const getPostsBySender = async (req, res) => {
 
 const addPost = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, imageUrl } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
 
-    // Use authenticated user's ID
     const post = new Post({
       senderId: req.user.userId,
       title,
       content,
+      imageUrl,
     });
 
     await post.save();
     res.status(201).json(post);
   } catch (error) {
+    console.error("Error creating post:", error);
     res.status(500).json({ error: 'Error creating post' });
   }
 };

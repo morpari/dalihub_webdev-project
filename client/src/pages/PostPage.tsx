@@ -13,7 +13,7 @@ const PostPage = () => {
     setLoading(true);
     setError("");
     setImageUrl("");
-
+  
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -23,13 +23,13 @@ const PostPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       setImageUrl(response.data.imageUrl);
     } catch (err) {
       setError("Failed to generate image. Please try again.");
       console.error(err);
     }
-
+  
     setLoading(false);
   };
 
@@ -39,12 +39,12 @@ const PostPage = () => {
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:3000/posts",
-        { title, content, imageUrl }, // Attach generated image URL
+        { title, content, imageUrl },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       alert("Post created successfully!");
       setTitle("");
       setContent("");
