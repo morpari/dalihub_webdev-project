@@ -5,12 +5,12 @@ require('dotenv').config()
 const postsRouter = require('./routes/posts')
 const commentsRouter = require('./routes/comments')
 const authRouter = require('./routes/auth');
+const cors = require('cors');
 const setupSwagger = require('./config/swagger');
-
+const cors = require("cors");
 const app = express()
 
 
-const cors = require("cors");
 
 
 app.use(cors({
