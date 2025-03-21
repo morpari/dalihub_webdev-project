@@ -238,6 +238,8 @@ router.get('/user/:senderId', authMiddleware, getPostsBySender);
  *         description: Internal server error
  */
 
+router.put('/:id', authMiddleware, updatePost);
+
 const imageGenLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
