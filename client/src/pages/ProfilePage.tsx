@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import { FiLogOut, FiEdit2 } from "react-icons/fi"; // Import edit icon
+import { FiLogOut, FiEdit2 } from "react-icons/fi";
 
 interface Post {
   _id: string;
@@ -22,10 +22,10 @@ const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const userId = localStorage.getItem("userId");
-  const [currentUser, setCurrentUser] = useState<User | null>(null); // ✅ Logged-in user
-  const [isEditing, setIsEditing] = useState(false); // ✅ Toggle for edit mode
-  const [newUsername, setNewUsername] = useState(""); // ✅ Updated username
-  const [error, setError] = useState(""); // ✅ Error handling
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!userId) {
@@ -33,26 +33,16 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
-    // ✅ Fetch logged-in user for navbar
-    axiosInstance
-      .get(`/users/${userId}`)
-      .then((response) => setCurrentUser(response.data))
-      .catch((error) => console.error("Error fetching logged-in user:", error));
+    axiosInstance.get(`/users/${userId}`).then((res) => setCurrentUser(res.data)).catch(console.error);
 
-    // ✅ Fetch the profile being viewed
-    axiosInstance
-      .get(`/users/${id}`)
-      .then((response) => {
-        setUser(response.data);
-        setNewUsername(response.data.username); // ✅ Set default username for editing
-      })
-      .catch((error) => console.error("Error fetching user:", error));
+    axiosInstance.get(`/users/${id}`).then((res) => {
+      setUser(res.data);
+      setNewUsername(res.data.username);
+    }).catch(console.error);
 
-    // ✅ Fetch posts of the viewed profile
-    axiosInstance
-      .get(`/posts/user/${id}`)
-      .then((response) => setPosts(response.data.posts))
-      .catch((error) => console.error("Error fetching user posts:", error));
+    axiosInstance.get(`/posts/user/${id}`).then((res) => {
+      setPosts(res.data.posts);
+    }).catch(console.error);
   }, [id, navigate, userId]);
 
   const handleLogout = async () => {
@@ -68,29 +58,16 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // ✅ Handle updating the username
   const handleUpdateUsername = async () => {
-    setError(""); // Clear previous errors
-    if (!newUsername.trim()) {
-      setError("Username cannot be empty.");
-      return;
-    }
-    if (newUsername === user?.username) {
-      setError("This is already your username.");
-      return;
-    }
+    setError("");
+    if (!newUsername.trim()) return setError("Username cannot be empty.");
+    if (newUsername === user?.username) return setError("This is already your username.");
     try {
-      const response = await axiosInstance.put(`/users/${userId}`, {
-        username: newUsername,
-      });
-      setUser(response.data); // Update user in UI
-      setIsEditing(false); // Close edit mode
-    } catch (error: any) {
-      if (error.response?.data?.error) {
-        setError(error.response.data.error);
-      } else {
-        setError("An error occurred. Please try again.");
-      }
+      const res = await axiosInstance.put(`/users/${userId}`, { username: newUsername });
+      setUser(res.data);
+      setIsEditing(false);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Something went wrong");
     }
   };
 
@@ -98,10 +75,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex text-white" style={{ background: "linear-gradient(to right, #2575fc, #ff00cc)" }}>
-      
-      {/* ✅ Top Navigation Bar */}
       <div className="fixed top-0 left-0 w-full bg-white bg-opacity-80 backdrop-blur-lg px-6 py-2 flex items-center justify-between shadow-md z-50">
-        {/* ✅ Left Side: App Name & Logout */}
         <div className="flex items-center space-x-4">
           <h1 className="text-lg font-bold text-gray-800">DaliHub</h1>
           <button onClick={handleLogout} className="text-gray-800 hover:text-gray-600 transition flex items-center space-x-1">
@@ -109,8 +83,6 @@ const ProfilePage: React.FC = () => {
             <span className="text-sm font-medium">Logout</span>
           </button>
         </div>
-
-        {/* ✅ Right Side: Show Logged-In User in Navbar */}
         {currentUser && (
           <Link to={`/profile/${currentUser._id}`} className="flex items-center space-x-2 hover:opacity-80">
             <img src={currentUser.profileImage || "https://via.placeholder.com/50"} alt="Profile" className="w-8 h-8 rounded-full border border-gray-300" />
@@ -119,7 +91,6 @@ const ProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/* ✅ Profile Info Section (Top-Right) */}
       <div className="fixed top-16 right-4 bg-white bg-opacity-90 backdrop-blur-lg p-6 rounded-xl shadow-lg w-72">
         <img 
           src={user.profileImage || "https://via.placeholder.com/150"} 
@@ -127,8 +98,6 @@ const ProfilePage: React.FC = () => {
           className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-gray-200"
         />
         <h2 className="text-center text-2xl font-semibold text-gray-900">{user.username}</h2>
-
-        {/* ✅ Edit Profile Button (Only if logged-in user is viewing their own profile) */}
         {userId === user._id && (
           <button 
             className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-blue-700 transition"
@@ -140,13 +109,10 @@ const ProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/*Edit Profile Shown when edit */}
       {isEditing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Change Username</h2>
-            
-            {/* ✅ Username Input */}
             <input 
               type="text" 
               value={newUsername} 
@@ -155,8 +121,6 @@ const ProfilePage: React.FC = () => {
               placeholder="Enter new username" 
             />
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
-            {/* ✅ Buttons */}
             <div className="flex justify-end space-x-2 mt-4">
               <button className="px-4 py-2 bg-gray-300 rounded-lg" onClick={() => setIsEditing(false)}>Cancel</button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" onClick={handleUpdateUsername}>Save</button>
@@ -165,10 +129,19 @@ const ProfilePage: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ Placeholder for Posts Section */}
       <div className="flex-1 flex justify-center mt-20 px-8 pb-8">
         <div className="w-full max-w-2xl h-[calc(100vh-100px)] overflow-y-auto">
-          <h3 className="text-gray-900 text-center">User's posts go here...</h3>
+          {posts.length === 0 ? (
+            <h3 className="text-white text-center mt-10">No posts yet...</h3>
+          ) : (
+            posts.map((post) => (
+              <div key={post._id} className="bg-white bg-opacity-50 backdrop-blur-lg p-4 rounded-2xl shadow-lg border border-transparent mb-6">
+                {post.imageUrl && <img src={post.imageUrl} alt="Post" className="w-full h-40 object-cover rounded-md mb-4" />}
+                <h3 className="text-xl font-semibold text-gray-900">{post.title}</h3>
+                <p className="text-gray-800">{post.content}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
