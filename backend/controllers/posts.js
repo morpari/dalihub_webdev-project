@@ -1,6 +1,7 @@
 const Post = require('../models/post');
 const OpenAI = require("openai");
 const axios = require("axios");
+const multer = require("multer");
 const { bucket } = require("../config/firebase");
 require("dotenv").config();
 
@@ -32,10 +33,9 @@ const generateImage = async (req, res) => {
     const file = bucket.file(fileName);
     await file.save(imageBuffer, { contentType: "image/png" });
 
-    const firebaseImageUrl = `https://storage.googleapis.com/${process.env.FIREBASE_STORAGE_BUCKET}/${fileName}`;
+    const firebaseImageUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
 
     res.status(200).json({ imageUrl: firebaseImageUrl });
-
   } catch (error) {
     console.error("Error generating image:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -44,14 +44,12 @@ const generateImage = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query; // Get page & limit from query params
-
+    const { page = 1, limit = 10 } = req.query;
     const posts = await Post.find()
-      .sort({ createdAt: -1 }) // Sort latest posts first
-      .skip((page - 1) * limit) // Skip previous pages
-      .limit(parseInt(limit)); // Limit per page
-
-    const totalPosts = await Post.countDocuments(); // Total count
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    const totalPosts = await Post.countDocuments();
 
     res.json({
       posts,
@@ -62,7 +60,6 @@ const getAllPosts = async (req, res) => {
     res.status(500).json({ error: "Error retrieving posts" });
   }
 };
-
 
 const getPostById = async (req, res) => {
   try {
@@ -77,8 +74,7 @@ const getPostById = async (req, res) => {
 const getPostsBySender = async (req, res) => {
   try {
     const { senderId } = req.params;
-    const { page = 1, limit = 10 } = req.query; // Pagination
-
+    const { page = 1, limit = 10 } = req.query;
     if (!senderId) return res.status(400).json({ error: "Sender ID is required" });
 
     const posts = await Post.find({ senderId })
@@ -98,25 +94,35 @@ const getPostsBySender = async (req, res) => {
   }
 };
 
-
 const addPost = async (req, res) => {
+  console.log("req.body:", req.body);
+console.log("req.file:", req.file);
   try {
-    const { title, content } = req.body;
+    const { title, content, imageUrl } = req.body;
+    let finalImageUrl = imageUrl;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
 
-    // Use authenticated user's ID
+    if (req.file) {
+      const fileName = `uploads/${Date.now()}_${req.file.originalname}`;
+      const file = bucket.file(fileName);
+      await file.save(req.file.buffer, { contentType: req.file.mimetype });
+      finalImageUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
+    }
+
     const post = new Post({
       senderId: req.user.userId,
       title,
       content,
+      imageUrl: finalImageUrl,
     });
 
     await post.save();
     res.status(201).json(post);
   } catch (error) {
+    console.error("Post creation failed:", error);
     res.status(500).json({ error: 'Error creating post' });
   }
 };
@@ -129,7 +135,6 @@ const updatePost = async (req, res) => {
     const post = await Post.findById(id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
 
-    // Ensure only the post owner can update it
     if (post.senderId.toString() !== req.user.userId) {
       return res.status(403).json({ error: 'Unauthorized to edit this post' });
     }
