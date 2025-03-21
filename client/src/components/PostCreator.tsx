@@ -38,7 +38,7 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
         }
       );
       setImageUrl(res.data.imageUrl);
-      setShowImageOptions(false); // Hide options after successful generation
+      setShowImageOptions(false);
     } catch (err) {
       console.error(err);
       setError("Failed to generate image. Try again.");
@@ -49,8 +49,8 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadImage(e.target.files[0]);
-      setImageUrl(""); // Clear generated image if uploading manually
-      setShowImageOptions(false); // Hide options after successful upload
+      setImageUrl("");
+      setShowImageOptions(false);
     }
   };
 
@@ -82,7 +82,6 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
         },
       });
 
-      // Reset fields
       setTitle("");
       setContent("");
       setPrompt("");
@@ -136,7 +135,6 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
         className="w-full p-3 mb-4 bg-white bg-opacity-10 border border-gray-200 border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all min-h-[120px]"
       />
 
-      {/* Add image button */}
       {!imageUrl && !uploadImage && !showImageOptions && (
         <button
           onClick={() => setShowImageOptions(true)}
@@ -257,7 +255,6 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
   );
 };
 
-// Helper component for animations
 const AnimatePresence: React.FC<{children: React.ReactNode}> = ({ children }) => {
   return <>{children}</>;
 };
