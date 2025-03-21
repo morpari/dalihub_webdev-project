@@ -36,7 +36,7 @@ Thumbs.db
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
+package.json
 
 # Ignore Firebase service account
 firebase-service-account.json
