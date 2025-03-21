@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { FiImage, FiSend, FiX, FiUpload, FiLoader } from "react-icons/fi";
+import { FiImage, FiSend, FiX, FiUpload, FiLoader, FiEdit } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 interface Props {
   onPostCreated: () => void;
   onCancel?: () => void;
+  postToEdit?: Post | null;
+  isEditing?: boolean;
 }
 
-const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
+interface Post {
+  _id: string;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  createdAt: string;
+  senderId: string;
+}
+
+const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel, postToEdit = null, isEditing = false }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -17,6 +28,17 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showImageOptions, setShowImageOptions] = useState(false);
+
+  // Load existing post data if in edit mode
+  useEffect(() => {
+    if (postToEdit && isEditing) {
+      setTitle(postToEdit.title);
+      setContent(postToEdit.content);
+      if (postToEdit.imageUrl) {
+        setImageUrl(postToEdit.imageUrl);
+      }
+    }
+  }, [postToEdit, isEditing]);
 
   const handleGenerateImage = async () => {
     if (!prompt.trim()) {
@@ -76,11 +98,21 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
       if (imageUrl) formData.append("imageUrl", imageUrl);
       if (uploadImage) formData.append("upload", uploadImage);
 
-      await axiosInstance.post("/posts", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (isEditing && postToEdit) {
+        // Update existing post
+        await axiosInstance.put(`/posts/${postToEdit._id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } else {
+        // Create new post
+        await axiosInstance.post("/posts", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
 
       setTitle("");
       setContent("");
@@ -90,8 +122,8 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
       setLoading(false);
       onPostCreated();
     } catch (err) {
-      console.error("Post submission failed", err);
-      setError("Post submission failed. Try again.");
+      console.error(isEditing ? "Post update failed" : "Post submission failed", err);
+      setError(isEditing ? "Post update failed. Try again." : "Post submission failed. Try again.");
       setLoading(false);
     }
   };
@@ -109,7 +141,7 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
       transition={{ duration: 0.3 }}
     >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-white">Create a New Post</h2>
+        <h2 className="text-xl font-bold text-white">{isEditing ? "Edit Post" : "Create a New Post"}</h2>
         {onCancel && (
           <button 
             onClick={onCancel} 
@@ -242,12 +274,12 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel }) => {
         {loading ? (
           <>
             <FiLoader className="animate-spin mr-2" /> 
-            Publishing...
+            {isEditing ? "Updating..." : "Publishing..."}
           </>
         ) : (
           <>
-            <FiSend className="mr-2" /> 
-            Publish Post
+            {isEditing ? <FiEdit className="mr-2" /> : <FiSend className="mr-2" />}
+            {isEditing ? "Update Post" : "Publish Post"}
           </>
         )}
       </motion.button>

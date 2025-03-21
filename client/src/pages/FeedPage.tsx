@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import { FiLogOut, FiPlusCircle, FiUsers, FiHome } from "react-icons/fi";
+import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCreator from "../components/PostCreator";
 
@@ -25,6 +25,8 @@ const FeedPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [postAuthors, setPostAuthors] = useState<{ [key: string]: User }>({});
   const [showPostCreator, setShowPostCreator] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -82,6 +84,25 @@ const FeedPage: React.FC = () => {
   const handlePostCreated = () => {
     fetchPosts();
     setShowPostCreator(false);
+    setSelectedPost(null);
+    setIsEditing(false);
+  };
+
+  const handleEditPost = (post: Post) => {
+    setSelectedPost(post);
+    setIsEditing(true);
+    setShowPostCreator(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowPostCreator(false);
+    setSelectedPost(null);
+    setIsEditing(false);
+  };
+
+  // Check if the current user is the author of a post
+  const isPostAuthor = (post: Post) => {
+    return post.senderId === userId;
   };
 
   const backgroundStyle = {
@@ -100,7 +121,11 @@ const FeedPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-white tracking-wide">DaliHub</h1>
         <div className="flex items-center space-x-6">
           <button
-            onClick={() => setShowPostCreator(true)}
+            onClick={() => {
+              setSelectedPost(null);
+              setIsEditing(false);
+              setShowPostCreator(true);
+            }}
             className="bg-purple-600 bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-100 transition-all transform hover:scale-105"
           >
             <FiPlusCircle className="text-2xl" />
@@ -175,15 +200,26 @@ const FeedPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 * index }}
               >
-                <div className="flex items-center space-x-3 mb-4">
-                  {author && (
-                    <Link to={`/profile/${author._id}`} className="flex items-center space-x-3">
-                      <img src={author.profileImage || "https://via.placeholder.com/40"} alt="Author" className="w-10 h-10 rounded-full border border-purple-300" />
-                      <div>
-                        <p className="text-white font-medium">{author.name}</p>
-                        <p className="text-xs text-gray-300">{new Date(post.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    </Link>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    {author && (
+                      <Link to={`/profile/${author._id}`} className="flex items-center space-x-3">
+                        <img src={author.profileImage || "https://via.placeholder.com/40"} alt="Author" className="w-10 h-10 rounded-full border border-purple-300" />
+                        <div>
+                          <p className="text-white font-medium">{author.name}</p>
+                          <p className="text-xs text-gray-300">{new Date(post.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+                  {isPostAuthor(post) && (
+                    <button
+                      onClick={() => handleEditPost(post)}
+                      className="bg-purple-500 bg-opacity-50 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                      title="Edit post"
+                    >
+                      <FiEdit />
+                    </button>
                   )}
                 </div>
 
@@ -203,7 +239,7 @@ const FeedPage: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Post Creator Modal */}
+      {/* Post Creator/Editor Modal */}
       <AnimatePresence>
         {showPostCreator && (
           <motion.div
@@ -211,7 +247,7 @@ const FeedPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowPostCreator(false)}
+            onClick={handleCancelEdit}
           >
             <motion.div
               className="relative max-w-2xl w-full"
@@ -221,7 +257,12 @@ const FeedPage: React.FC = () => {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <PostCreator onPostCreated={handlePostCreated} onCancel={() => setShowPostCreator(false)} />
+              <PostCreator 
+                onPostCreated={handlePostCreated} 
+                onCancel={handleCancelEdit} 
+                postToEdit={selectedPost} 
+                isEditing={isEditing}
+              />
             </motion.div>
           </motion.div>
         )}
