@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit } from "react-icons/fi";
+import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit, FiTrash, FiAlertTriangle } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCreator from "../components/PostCreator";
 
@@ -12,6 +12,7 @@ interface Post {
   imageUrl?: string;
   createdAt: string;
   senderId: string;
+  deleting?: boolean;
 }
 
 interface User {
@@ -27,6 +28,8 @@ const FeedPage: React.FC = () => {
   const [showPostCreator, setShowPostCreator] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -37,7 +40,6 @@ const FeedPage: React.FC = () => {
       navigate("/");
       return;
     }
-
     fetchPosts();
     fetchUsers();
   }, [token, navigate]);
@@ -75,9 +77,7 @@ const FeedPage: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
+    localStorage.clear();
     navigate("/");
   };
 
@@ -100,10 +100,44 @@ const FeedPage: React.FC = () => {
     setIsEditing(false);
   };
 
-  // Check if the current user is the author of a post
-  const isPostAuthor = (post: Post) => {
-    return post.senderId === userId;
+  const confirmDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setShowDeleteConfirm(true);
   };
+
+  const handleDeleteConfirmed = async () => {
+    if (!postToDelete) return;
+    try {
+      await axiosInstance.delete(`/posts/${postToDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPosts(prevPosts => prevPosts.map(p => 
+        p._id === postToDelete 
+          ? {...p, deleting: true} 
+          : p
+      ));
+      
+      setTimeout(() => {
+        fetchPosts();
+      }, 300);
+      
+      // Close the modal
+      setShowDeleteConfirm(false);
+      setPostToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete post", err);
+      alert("Failed to delete the post. Try again.");
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setPostToDelete(null);
+  };
+
+  const isPostAuthor = (post: Post) => post.senderId === userId;
 
   const backgroundStyle = {
     background: "linear-gradient(to right, #6a11cb, #2575fc)",
@@ -111,7 +145,6 @@ const FeedPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex text-white" style={backgroundStyle}>
-      {/* Top Bar */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -140,12 +173,11 @@ const FeedPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Sidebar */}
       <motion.div
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="fixed top-16 left-4 bottom-4 w-64 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4 shadow-lg max-h-[calc(100vh-80px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
+        className="fixed top-16 left-4 bottom-4 w-64 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4 shadow-lg max-h-[calc(100vh-80px)] overflow-y-auto"
       >
         <div className="flex items-center space-x-3 mb-8 p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur-md">
           <img src="https://via.placeholder.com/50" alt="Profile" className="w-12 h-12 rounded-full border-2 border-purple-300" />
@@ -182,7 +214,6 @@ const FeedPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col items-center mt-20 px-8 pb-8 ml-64">
         <motion.div
           className="w-full max-w-2xl"
@@ -190,12 +221,12 @@ const FeedPage: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          {Array.isArray(posts) && posts.map((post, index) => {
+          {posts.map((post, index) => {
             const author = postAuthors[post.senderId];
             return (
               <motion.div
                 key={post._id}
-                className="bg-white bg-opacity-10 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-white border-opacity-10 mb-6 hover:bg-opacity-15 transition-all"
+                className={`bg-white bg-opacity-10 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-white border-opacity-10 mb-6 transition-all duration-300 ${post.deleting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 * index }}
@@ -212,14 +243,24 @@ const FeedPage: React.FC = () => {
                       </Link>
                     )}
                   </div>
+
                   {isPostAuthor(post) && (
-                    <button
-                      onClick={() => handleEditPost(post)}
-                      className="bg-purple-500 bg-opacity-50 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
-                      title="Edit post"
-                    >
-                      <FiEdit />
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="bg-purple-500 bg-opacity-50 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                        title="Edit post"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => confirmDeletePost(post._id)}
+                        className="bg-red-500 bg-opacity-50 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                        title="Delete post"
+                      >
+                        <FiTrash />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -239,7 +280,6 @@ const FeedPage: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Post Creator/Editor Modal */}
       <AnimatePresence>
         {showPostCreator && (
           <motion.div
@@ -263,6 +303,47 @@ const FeedPage: React.FC = () => {
                 postToEdit={selectedPost} 
                 isEditing={isEditing}
               />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={cancelDelete}
+          >
+            <motion.div 
+              className="bg-white bg-opacity-90 backdrop-blur-lg p-6 rounded-xl shadow-lg w-96"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center space-x-3 text-red-500 mb-4">
+                <FiAlertTriangle className="text-2xl" />
+                <h2 className="text-xl font-bold text-gray-800">Delete Post</h2>
+              </div>
+              <p className="text-gray-700 mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
+                <button 
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors" 
+                  onClick={cancelDelete}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" 
+                  onClick={handleDeleteConfirmed}
+                >
+                  Delete
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
