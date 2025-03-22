@@ -246,6 +246,10 @@ const imageGenLimiter = rateLimit({
   message: { error: "Rate limit exceeded. Try again later." },
 });
 
+const { deletePost } = require('../controllers/posts');
+
+router.delete('/:id', authMiddleware, deletePost);
+
 router.post("/generate-image", authMiddleware, imageGenLimiter, generateImage);
 
 

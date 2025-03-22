@@ -149,11 +149,31 @@ const updatePost = async (req, res) => {
   }
 };
 
+const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    if (post.senderId.toString() !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized to delete this post' });
+    }
+
+    await post.deleteOne();
+    res.status(200).json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error("Delete failed:", error);
+    res.status(500).json({ error: 'Error deleting post' });
+  }
+};
+
 module.exports = {
   getAllPosts,
   getPostById,
   getPostsBySender,
   addPost,
   updatePost,
+  deletePost,
   generateImage
 };
