@@ -1,6 +1,10 @@
 const User = require("../models/user");
+const multer = require("multer");
+const { bucket } = require("../config/firebase");
 
-// Get user by ID (Protected)
+const upload = multer({ storage: multer.memoryStorage() });
+
+// GET: Get user by ID (Protected)
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("_id username profileImage");
@@ -13,7 +17,7 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Get all users (Protected)
+// GET: Get all users (Protected)
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("_id username profileImage");
@@ -23,26 +27,45 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// PUT: Update username and/or profile image
 const updateUserProfile = async (req, res) => {
   try {
     const { username } = req.body;
     const userId = req.params.id;
+    console.log("👀 Uploaded file:", req.file);
 
     if (!username) {
       return res.status(400).json({ error: "Username is required." });
     }
 
-    // Check if username already exists (excluding the current user)
     const existingUser = await User.findOne({ username, _id: { $ne: userId } });
     if (existingUser) {
       return res.status(400).json({ error: "Username is already taken." });
     }
 
-    // Update username
+    let profileImageUrl;
+
+    if (req.file) {
+      const fileName = `profile-images/${Date.now()}_${req.file.originalname}`;
+      const file = bucket.file(fileName);
+
+      await file.save(req.file.buffer, {
+        contentType: req.file.mimetype,
+      });
+
+      profileImageUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(fileName)}?alt=media`;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { username },
-      { new: true, select: "_id username profileImage" } // Only return necessary fields
+      {
+        username,
+        ...(profileImageUrl && { profileImage: profileImageUrl }),
+      },
+      {
+        new: true,
+        select: "_id username profileImage",
+      }
     );
 
     if (!updatedUser) {
@@ -56,5 +79,8 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-
-module.exports = { getUserById, getAllUsers, updateUserProfile,};
+module.exports = {
+  getUserById,
+  getAllUsers,
+  updateUserProfile,
+};

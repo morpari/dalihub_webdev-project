@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit, FiTrash, FiAlertTriangle } from "react-icons/fi";
+import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit, FiTrash, FiAlertTriangle, FiHeart, FiMessageCircle } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCreator from "../components/PostCreator";
 
@@ -13,11 +13,13 @@ interface Post {
   createdAt: string;
   senderId: string;
   deleting?: boolean;
+  likes?: string[];
+  commentCount?: number;
 }
 
 interface User {
   _id: string;
-  name: string;
+  username: string;
   profileImage?: string;
 }
 
@@ -30,6 +32,8 @@ const FeedPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -42,6 +46,14 @@ const FeedPage: React.FC = () => {
     }
     fetchPosts();
     fetchUsers();
+  
+    //Fetch current user
+    if (userId) {
+      axiosInstance
+        .get(`/users/${userId}`)
+        .then((res) => setCurrentUser(res.data))
+        .catch((err) => console.error("Failed to fetch current user", err));
+    }
   }, [token, navigate]);
 
   const fetchPosts = async () => {
@@ -63,6 +75,30 @@ const FeedPage: React.FC = () => {
       console.error("Failed to fetch posts", err);
     }
   };
+
+  const handleToggleLike = async (postId: string) => {
+    try {
+      const res = await axiosInstance.patch(`/posts/${postId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      setPosts((prev) =>
+        prev.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                likes: post.likes?.includes(userId || "")
+                  ? post.likes?.filter((id) => id !== userId)
+                  : [...(post.likes || []), userId!],
+              }
+            : post
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle like", err);
+    }
+  };
+  
 
   const fetchUsers = async () => {
     try {
@@ -179,10 +215,19 @@ const FeedPage: React.FC = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="fixed top-16 left-4 bottom-4 w-64 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4 shadow-lg max-h-[calc(100vh-80px)] overflow-y-auto"
       >
-        <div className="flex items-center space-x-3 mb-8 p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur-md">
-          <img src="https://via.placeholder.com/50" alt="Profile" className="w-12 h-12 rounded-full border-2 border-purple-300" />
-          <p className="text-white font-semibold">Your Profile</p>
-        </div>
+        {currentUser && (
+          <Link
+            to={`/profile/${currentUser._id}`}
+            className="flex items-center space-x-3 mb-8 p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur-md hover:bg-opacity-30 transition"
+          >
+            <img
+              src={currentUser.profileImage || "https://via.placeholder.com/50"}
+              alt="Profile"
+              className="w-12 h-12 rounded-full border-2 border-purple-300"
+            />
+            <p className="text-white font-semibold">{currentUser.username}</p>
+          </Link>
+        )}
 
         <div className="mb-6">
           <div className="flex items-center space-x-2 mb-3 text-gray-300">
@@ -196,7 +241,7 @@ const FeedPage: React.FC = () => {
         </div>
 
         <div className="pt-4 border-t border-white border-opacity-20">
-          <h3 className="text-sm uppercase text-gray-300 font-medium mb-3">Active Users</h3>
+          <h3 className="text-sm uppercase text-gray-300 font-medium mb-3">Explore Users</h3>
           <div className="space-y-4">
             {users.map((user) => (
               <motion.div
@@ -206,7 +251,7 @@ const FeedPage: React.FC = () => {
               >
                 <img src={user.profileImage || "https://via.placeholder.com/40"} alt="Profile" className="w-10 h-10 rounded-full border border-purple-300" />
                 <Link to={`/profile/${user._id}`} className="text-white hover:underline">
-                  {user.name}
+                  {user.username}
                 </Link>
               </motion.div>
             ))}
@@ -237,7 +282,7 @@ const FeedPage: React.FC = () => {
                       <Link to={`/profile/${author._id}`} className="flex items-center space-x-3">
                         <img src={author.profileImage || "https://via.placeholder.com/40"} alt="Author" className="w-10 h-10 rounded-full border border-purple-300" />
                         <div>
-                          <p className="text-white font-medium">{author.name}</p>
+                          <p className="text-white font-medium">{author.username}</p>
                           <p className="text-xs text-gray-300">{new Date(post.createdAt).toLocaleDateString()}</p>
                         </div>
                       </Link>
@@ -274,6 +319,29 @@ const FeedPage: React.FC = () => {
                     className="w-full h-64 object-cover rounded-xl shadow-md border border-white border-opacity-10"
                   />
                 )}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => handleToggleLike(post._id)}
+                      className="flex items-center space-x-1 text-white hover:text-red-400 transition"
+                    >
+                      <FiHeart
+                        className={`text-xl transition ${
+                          post.likes?.includes(userId || "") ? "text-red-500" : "text-gray-400"
+                        }`}
+                      />
+                      <span className="text-sm">{post.likes?.length || 0}</span>
+                    </button>
+
+                    <button
+                      onClick={() => navigate(`/posts/${post._id}/comments`)}
+                      className="flex items-center space-x-1 text-white hover:text-purple-400 transition"
+                    >
+                      <FiMessageCircle className="text-xl text-gray-300" />
+                      <span className="text-sm">{post.commentCount || 0}</span>
+                    </button>
+                  </div>
+                </div>
               </motion.div>
             );
           })}

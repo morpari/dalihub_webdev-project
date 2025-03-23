@@ -7,6 +7,7 @@ const {
   addPost,
   updatePost,
   generateImage,
+  toggleLike,
 } = require('../controllers/posts');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -239,6 +240,39 @@ router.get('/user/:senderId', authMiddleware, getPostsBySender);
  */
 
 router.put('/:id', authMiddleware, updatePost);
+
+/**
+ * @swagger
+ * /posts/{id}/like:
+ *   patch:
+ *     summary: Like or unlike a post (toggle)
+ *     tags: [Posts]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the post to like/unlike.
+ *     responses:
+ *       200:
+ *         description: Like toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 likes:
+ *                   type: integer
+ *                   example: 5
+ *                 likedByUser:
+ *                   type: boolean
+ *                   example: true
+ */
+router.patch('/:id/like', authMiddleware, toggleLike);
+
 
 const imageGenLimiter = rateLimit({
   windowMs: 60 * 1000,

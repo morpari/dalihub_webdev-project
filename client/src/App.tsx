@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
+import FullPostCommentsPage from "./pages/FullPostCommentsPage";
 
 
 const App = () => {
@@ -16,8 +17,9 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/posts" element={<FeedPage />} />
+        <Route path="/posts/:postId/comments" element={<FullPostCommentsPage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
-        <Route path="/auth/google/callback" element={<GoogleAuthHandler />} /> {/* new */}
+        <Route path="/auth/google/callback" element={<GoogleAuthHandler />} />
       </Routes>
     </>
   );

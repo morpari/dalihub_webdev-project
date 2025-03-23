@@ -16,14 +16,27 @@ const getCommentById = async (req, res) => {
 const getAllCommentsForPost = async (req, res) => {
   try {
     const { postId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
     if (!postId) return res.status(400).json({ error: 'Post ID is required' });
 
-    const comments = await Comment.find({ postId });
-    res.json(comments);
+    const comments = await Comment.find({ postId })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Comment.countDocuments({ postId });
+
+    res.json({
+      comments,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error retrieving comments for post' });
   }
 };
+
 
 const addComment = async (req, res) => {
   try {

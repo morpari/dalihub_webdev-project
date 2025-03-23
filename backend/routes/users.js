@@ -1,9 +1,14 @@
 const express = require("express");
-const authMiddleware = require("../middleware/authMiddleware"); 
-const { getUserById, getAllUsers, updateUserProfile} = require("../controllers/users"); 
+const multer = require("multer");
+const authMiddleware = require("../middleware/authMiddleware");
+const {
+  getUserById,
+  getAllUsers,
+  updateUserProfile
+} = require("../controllers/users");
 
 const router = express.Router();
-
+const upload = multer({ storage: multer.memoryStorage() });
 /**
  * @swagger
  * /users/{id}:
@@ -49,10 +54,12 @@ router.get("/", authMiddleware, getAllUsers);
  * @swagger
  * /users/{id}:
  *   put:
- *     summary: Update user profile (username)
+ *     summary: Update user profile (username and/or profile image)
  *     security:
  *       - bearerAuth: []
  *     tags: [Users]
+ *     consumes:
+ *       - multipart/form-data
  *     parameters:
  *       - in: path
  *         name: id
@@ -63,13 +70,16 @@ router.get("/", authMiddleware, getAllUsers);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               username:
  *                 type: string
  *                 example: "newUsername123"
+ *               upload:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Successfully updated profile
@@ -80,6 +90,6 @@ router.get("/", authMiddleware, getAllUsers);
  *       500:
  *         description: Internal server error
  */
-router.put("/:id", authMiddleware, updateUserProfile); 
+router.put("/:id", authMiddleware, upload.single("upload"), updateUserProfile);
 
 module.exports = router;
