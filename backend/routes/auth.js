@@ -23,13 +23,10 @@ const router = express.Router();
  *     tags: [Authentication]
  */
 router.get('/google',
-  passport.authenticate('google', {
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email'
-    ],
-  })
-);
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],  
+    })
+  );
   
   /**
    * @swagger
