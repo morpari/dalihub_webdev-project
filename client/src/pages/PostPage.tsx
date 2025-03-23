@@ -14,10 +14,11 @@ const PostPage = () => {
     setError("");
     setImageUrl("");
 
+
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:3000/posts/generate-image",
+        `${process.env.REACT_APP_BACK_URL}/posts/generate-image`,
         { prompt },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -38,7 +39,7 @@ const PostPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/posts",
+        `${process.env.REACT_APP_BACK_URL}/posts`,
         { title, content, imageUrl,  imagePrompt: imageUrl ? prompt : undefined },
         {
           headers: { Authorization: `Bearer ${token}` },
