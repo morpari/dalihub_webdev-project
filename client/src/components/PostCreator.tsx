@@ -15,6 +15,7 @@ interface Post {
   title: string;
   content: string;
   imageUrl?: string;
+  imagePrompt?: string;
   createdAt: string;
   senderId: string;
 }
@@ -36,6 +37,9 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel, postToEdit = nu
       setContent(postToEdit.content);
       if (postToEdit.imageUrl) {
         setImageUrl(postToEdit.imageUrl);
+      }
+      if (postToEdit.imagePrompt) {
+        setPrompt(postToEdit.imagePrompt);
       }
     }
   }, [postToEdit, isEditing]);
@@ -96,6 +100,7 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel, postToEdit = nu
       formData.append("title", title);
       formData.append("content", content);
       if (imageUrl) formData.append("imageUrl", imageUrl);
+      if (prompt) formData.append("imagePrompt", prompt);
       if (uploadImage) formData.append("upload", uploadImage);
 
       if (isEditing && postToEdit) {
