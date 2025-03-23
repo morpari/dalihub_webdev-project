@@ -3,6 +3,7 @@ const OpenAI = require("openai");
 const axios = require("axios");
 const multer = require("multer");
 const { bucket } = require("../config/firebase");
+const Comment = require('../models/comment');
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -49,27 +50,46 @@ const getAllPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
+
     const totalPosts = await Post.countDocuments();
 
+    // Get comment counts for each post
+    const postsWithCounts = await Promise.all(
+      posts.map(async (post) => {
+        const commentCount = await Comment.countDocuments({ postId: post._id });
+        return {
+          ...post.toObject(),
+          commentCount,
+        };
+      })
+    );
+
     res.json({
-      posts,
+      posts: postsWithCounts,
       currentPage: page,
       totalPages: Math.ceil(totalPosts / limit),
     });
   } catch (error) {
+    console.error("Error retrieving posts:", error);
     res.status(500).json({ error: "Error retrieving posts" });
   }
 };
+
+
 
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    res.json(post);
+
+    const commentCount = await Comment.countDocuments({ postId: post._id });
+
+    res.json({ ...post.toObject(), commentCount });
   } catch (error) {
     res.status(500).json({ error: 'Error retrieving post' });
   }
 };
+
 
 const getPostsBySender = async (req, res) => {
   try {
@@ -84,15 +104,24 @@ const getPostsBySender = async (req, res) => {
 
     const totalPosts = await Post.countDocuments({ senderId });
 
+    // Add comment count to each post
+    const postsWithCounts = await Promise.all(
+      posts.map(async (post) => {
+        const commentCount = await Comment.countDocuments({ postId: post._id });
+        return { ...post.toObject(), commentCount };
+      })
+    );
+
     res.json({
-      posts,
-      currentPage: page,
+      posts: postsWithCounts,
+      currentPage: parseInt(page),
       totalPages: Math.ceil(totalPosts / limit),
     });
   } catch (error) {
     res.status(500).json({ error: "Error retrieving posts by sender" });
   }
 };
+
 
 const addPost = async (req, res) => {
   console.log("req.body:", req.body);
@@ -168,6 +197,34 @@ const deletePost = async (req, res) => {
   }
 };
 
+const toggleLike = async (req, res) => {
+  try {
+    const userId = req.user.userId; // from auth middleware
+    const postId = req.params.id;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const index = post.likes.indexOf(userId);
+
+    if (index === -1) {
+      post.likes.push(userId); // liked 
+    } else {
+      post.likes.splice(index, 1); // unlike 
+    }
+
+    await post.save();
+
+    res.status(200).json({
+      likes: post.likes.length,
+      likedByUser: post.likes.includes(userId),
+    });
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    res.status(500).json({ error: "Error toggling like" });
+  }
+};
+
 module.exports = {
   getAllPosts,
   getPostById,
@@ -175,5 +232,6 @@ module.exports = {
   addPost,
   updatePost,
   deletePost,
-  generateImage
+  generateImage,
+  toggleLike
 };
