@@ -39,7 +39,7 @@ const PostPage = () => {
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:3000/posts",
-        { title, content, imageUrl }, // Attach generated image URL
+        { title, content, imageUrl,  imagePrompt: imageUrl ? prompt : undefined }, // Attach generated image URL
         {
           headers: { Authorization: `Bearer ${token}` },
         }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit, FiTrash, FiAlertTriangle, FiHeart, FiMessageCircle } from "react-icons/fi";
+import { FiLogOut, FiPlusCircle, FiUsers, FiHome, FiEdit, FiTrash, FiAlertTriangle, FiHeart, FiMessageCircle, FiMessageSquare } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCreator from "../components/PostCreator";
 
@@ -10,6 +10,7 @@ interface Post {
   title: string;
   content: string;
   imageUrl?: string;
+  imagePrompt?: string;
   createdAt: string;
   senderId: string;
   deleting?: boolean;
@@ -313,11 +314,19 @@ const FeedPage: React.FC = () => {
                 <p className="text-gray-200 mb-4">{post.content}</p>
 
                 {post.imageUrl && (
-                  <img
-                    src={post.imageUrl}
-                    alt="Post"
-                    className="w-full h-64 object-cover rounded-xl shadow-md border border-white border-opacity-10"
-                  />
+                  <div>
+                    <img
+                      src={post.imageUrl}
+                      alt="Post"
+                      className="w-full h-64 object-cover rounded-xl shadow-md border border-white border-opacity-10"
+                    />
+                    {post.imagePrompt && (
+                      <div className="mt-2 p-3 bg-black bg-opacity-30 backdrop-blur-sm rounded-xl text-gray-200 italic flex items-start">
+                        <FiMessageSquare className="mr-2 mt-1 text-purple-400 flex-shrink-0" />
+                        <p className="text-sm">"{post.imagePrompt}"</p>
+                      </div>
+                    )}
+                  </div>
                 )}
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center space-x-4">

@@ -127,7 +127,7 @@ const addPost = async (req, res) => {
   console.log("req.body:", req.body);
 console.log("req.file:", req.file);
   try {
-    const { title, content, imageUrl } = req.body;
+    const { title, content, imageUrl, imagePrompt } = req.body;
     let finalImageUrl = imageUrl;
 
     if (!title || !content) {
@@ -146,6 +146,7 @@ console.log("req.file:", req.file);
       title,
       content,
       imageUrl: finalImageUrl,
+      imagePrompt: imagePrompt || null,
     });
 
     await post.save();
@@ -159,7 +160,7 @@ console.log("req.file:", req.file);
 const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content } = req.body;
+    const { title, content, imageUrl, imagePrompt } = req.body;
 
     const post = await Post.findById(id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -170,6 +171,7 @@ const updatePost = async (req, res) => {
 
     post.title = title || post.title;
     post.content = content || post.content;
+    if (imagePrompt !== undefined) post.imagePrompt = imagePrompt;
     await post.save();
 
     res.json(post);

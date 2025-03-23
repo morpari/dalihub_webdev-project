@@ -19,6 +19,10 @@ const PostSchema = new mongoose.Schema(
       type: String, // URL of the image stored in Firebase
       required: false,
     },
+    imagePrompt: {
+      type: String,
+      required: false,
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
