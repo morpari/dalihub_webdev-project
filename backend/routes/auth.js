@@ -16,6 +16,26 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /auth/protected-check:
+ *   get:
+ *     summary: Check access token validity
+ *     description: Protected route to verify if the access token is still valid.
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Access token is valid.
+ *       401:
+ *         description: Access token is missing or invalid.
+ */
+router.get("/protected-check", authMiddleware, (req, res) => {
+  res.sendStatus(200); // Simple success response
+});
+
+
+/**
+ * @swagger
  * /auth/google:
  *   get:
  *     summary: Login with Google
