@@ -212,20 +212,6 @@ const PostCreator: React.FC<Props> = ({ onPostCreated, onCancel, postToEdit = nu
                 </button>
               </div>
             </div>
-
-            <div className="p-4 bg-white bg-opacity-5 rounded-xl border border-white border-opacity-10">
-              <h3 className="text-white text-lg font-medium mb-3">Upload Your Own Image</h3>
-              <label className="flex flex-col items-center justify-center w-full p-4 bg-white bg-opacity-10 border border-dashed border-gray-200 border-opacity-30 rounded-xl text-gray-300 hover:bg-opacity-20 hover:text-white cursor-pointer transition-all">
-                <FiUpload className="text-2xl mb-2" />
-                <span className="text-sm">Click to upload image</span>
-                <input
-                  type="file"
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-              </label>
-            </div>
             
             <div className="flex justify-end">
               <button
