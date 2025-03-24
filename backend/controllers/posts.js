@@ -171,7 +171,9 @@ const updatePost = async (req, res) => {
 
     post.title = title || post.title;
     post.content = content || post.content;
+    if (imageUrl !== undefined) post.imageUrl = imageUrl;
     if (imagePrompt !== undefined) post.imagePrompt = imagePrompt;
+
     await post.save();
 
     res.json(post);
