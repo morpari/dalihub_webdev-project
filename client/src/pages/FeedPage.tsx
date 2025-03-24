@@ -59,6 +59,7 @@ const FeedPage: React.FC = () => {
 
   const fetchPosts = async () => {
     try {
+      const token = localStorage.getItem("token");
       const res = await axiosInstance.get("/posts");
       setPosts(res.data.posts);
 
