@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
   }, 
   profileImage: { 
     type: String, 
-    default: '' 
+    default: 'https://firebasestorage.googleapis.com/v0/b/dalihub-7ba09.firebasestorage.app/o/profile-images%2F1742835163636_matthew-blank-profile-photo-1.jpg?alt=media' 
   },
   googleId: { 
     type: String, 
