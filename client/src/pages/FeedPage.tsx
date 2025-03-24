@@ -182,6 +182,7 @@ const FeedPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex text-white" style={backgroundStyle}>
+      
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -222,7 +223,7 @@ const FeedPage: React.FC = () => {
             className="flex items-center space-x-3 mb-8 p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur-md hover:bg-opacity-30 transition"
           >
             <img
-              src={currentUser.profileImage || "https://via.placeholder.com/50"}
+              src={currentUser.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
               alt="Profile"
               className="w-12 h-12 rounded-full border-2 border-purple-300"
             />
@@ -250,7 +251,7 @@ const FeedPage: React.FC = () => {
                 className="flex items-center space-x-3 p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-all cursor-pointer"
                 whileHover={{ x: 4 }}
               >
-                <img src={user.profileImage || "https://via.placeholder.com/40"} alt="Profile" className="w-10 h-10 rounded-full border border-purple-300" />
+                <img src={user.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt="Profile" className="w-10 h-10 rounded-full border border-purple-300" />
                 <Link to={`/profile/${user._id}`} className="text-white hover:underline">
                   {user.username}
                 </Link>
@@ -281,7 +282,7 @@ const FeedPage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     {author && (
                       <Link to={`/profile/${author._id}`} className="flex items-center space-x-3">
-                        <img src={author.profileImage || "https://via.placeholder.com/40"} alt="Author" className="w-10 h-10 rounded-full border border-purple-300" />
+                        <img src={author.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt="Author" className="w-10 h-10 rounded-full border border-purple-300" />
                         <div>
                           <p className="text-white font-medium">{author.username}</p>
                           <p className="text-xs text-gray-300">{new Date(post.createdAt).toLocaleDateString()}</p>

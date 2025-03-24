@@ -164,7 +164,12 @@ const ProfilePage: React.FC = () => {
     <div className="min-h-screen flex text-white" style={{ background: "linear-gradient(to right, #6a11cb, #2575fc)" }}>
       {/* Top Bar */}
       <motion.div className="fixed top-0 left-0 w-full bg-white bg-opacity-10 backdrop-blur-lg px-6 py-3 flex justify-between items-center shadow-lg z-50">
-        <h1 className="text-2xl font-bold text-white tracking-wide">DaliHub</h1>
+      <button
+          onClick={() => navigate("/posts")}
+          className="text-2xl font-bold text-white tracking-wide hover:underline hover:text-purple-300 transition"
+        >
+          DaliHub
+        </button>
         <div className="flex items-center space-x-6">
           <button onClick={handleLogout} className="text-white hover:text-gray-300 transition flex items-center space-x-2">
             <FiLogOut className="text-xl" />
@@ -172,7 +177,7 @@ const ProfilePage: React.FC = () => {
           </button>
           {currentUser && (
             <Link to={`/profile/${currentUser._id}`} className="flex items-center space-x-2 hover:opacity-80">
-              <img src={currentUser.profileImage || "https://via.placeholder.com/50"} alt="Profile" className="w-8 h-8 rounded-full border border-white" />
+              <img src={currentUser.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt="Profile" className="w-8 h-8 rounded-full border border-white" />
               <span className="text-white font-medium text-sm">{currentUser.username}</span>
             </Link>
           )}
@@ -181,7 +186,7 @@ const ProfilePage: React.FC = () => {
 
       {/* Profile Sidebar */}
       <motion.div className="fixed top-16 right-4 bottom-4 w-72 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 shadow-lg flex flex-col items-center text-center space-y-4">
-        <img src={previewImage || user.profileImage || "https://via.placeholder.com/150"} alt="Profile" className="w-28 h-28 rounded-full border-4 border-purple-300 shadow-md" />
+        <img src={previewImage || user.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt="Profile" className="w-28 h-28 rounded-full border-4 border-purple-300 shadow-md" />
         <h2 className="text-xl font-semibold text-white">{user.username}</h2>
         {userId === user._id && (
           <button onClick={() => setIsEditing(true)} className="w-full bg-purple-600 bg-opacity-70 text-white py-2 rounded-lg flex items-center justify-center space-x-2 hover:bg-opacity-100 transition">
